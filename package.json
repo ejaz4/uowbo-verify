@@ -1,0 +1,19 @@
+{
+  "name": "uowbo-verify",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/ejaz4/uowbo-verify",
+  "author": "ejaz4 <ejazali4@protonmail.ch>",
+  "license": "GPLv3",
+  "private": true,
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "tsc": "^2.0.4",
+    "typescript": "^5.6.3"
+  },
+  "scripts": {
+    "start": "node dist/",
+    "dev": "yarn build && yarn start",
+    "build": "tsc"
+  }
+}
