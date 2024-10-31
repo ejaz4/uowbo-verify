@@ -8,6 +8,8 @@
   "private": true,
   "dependencies": {
     "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.0.0",
     "tsc": "^2.0.4",
     "typescript": "^5.6.3"
   },
@@ -15,5 +17,8 @@
     "start": "node dist/",
     "dev": "yarn build && yarn start",
     "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^22.8.4"
   }
 }
