@@ -3,6 +3,7 @@ import { config } from "dotenv";
 import { registerCommands } from "./cmds";
 import { availableCommands } from "./cmds";
 import { Command } from "./const/commands";
+import { server, webServerSetup } from "./ws";
 
 // Get environment values
 config()
@@ -13,7 +14,7 @@ try {
     console.error(e)
 }
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages, GatewayIntentBits.GuildMembers] });
 
 client.on('ready', () => {
     if (!client.user) return;
@@ -38,4 +39,6 @@ client.on("interactionCreate", async (interaction: Interaction<CacheType>) => {
     })
 })
 
+webServerSetup();
 client.login(process.env.DISCORD_TOKEN);
+server.listen({ host: "0.0.0.0", port: process.env.BOT_PORT });

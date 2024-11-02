@@ -5,6 +5,8 @@ declare global {
             DISCORD_APP_ID: string;
             ROLE_ID: string;
             API_HOST: string;
+            BOT_PORT: number;
+            SECRET: string;
         }
     }
 }
