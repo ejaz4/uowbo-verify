@@ -53,4 +53,15 @@ export const webServerSetup = () => {
         }
 
     });
+
+    server.post("/verifyUser", async (req, res) => {
+        const body = req.body as { userId: string; verified: boolean; };
+
+        const guild = client.guilds.cache.get("1287692332178735104");
+        const member = await guild?.members.fetch(body.userId);
+
+        await member?.roles.add(process.env.ROLE_ID);
+
+        return res.code(200).send({ message: "User verified." });
+    })
 }
