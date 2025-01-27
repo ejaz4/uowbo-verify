@@ -3,11 +3,17 @@ import Verify from "./verify";
 import Ping from "./ping";
 import { REST, Routes } from "discord.js";
 import { Command } from "../const/commands";
+import GetUser from "./getUserInfo";
+import Dashboard from "./dashboard";
+import Setup from "./setup"
 
 // Stable commands being advertised to the Discord API
 export const availableCommands: Command[] = [
     Verify,
-    Ping
+    Ping,
+    GetUser,
+    Dashboard,
+    Setup
 ]
 
 export const registerCommands = async () => {
