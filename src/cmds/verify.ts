@@ -20,12 +20,12 @@ const CommandHandler = async (i: Interaction<CacheType>, c: Client) => {
     // console.log(i.user.avatarURL)
     const generate = (await api("/api/generate", { id: userID, name: i.user.username, avatar: i.user.avatarURL() })) as GenerateResponse;
 
-    await i.editReply({ content: `${process.env.API_HOST}/verify/${generate.handover}` })
+    await i.editReply({ content: `${process.env.API_HOST}/verify/${generate.handover}?guildId=${i.guildId}` })
 }
 
-const PingCommand: Command = {
+const Command: Command = {
     meta: CommandMeta,
     handler: CommandHandler
 }
 
-export default PingCommand
+export default Command

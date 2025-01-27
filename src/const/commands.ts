@@ -5,5 +5,5 @@ export type Command = {
         name: string;
         description: string
     },
-    handler: (i: Interaction<CacheType>, c: Client) => Promise<void>;
+    handler: (i: Interaction<CacheType>, c: Client) => Promise<any>;
 }
