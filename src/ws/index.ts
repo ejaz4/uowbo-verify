@@ -1,131 +1,176 @@
 import fastify, { FastifyRequest } from "fastify";
 import { client } from "..";
 
-
 // This is a web server that should only accept requests from the front-end microservice and not any other application.
 export const server = fastify({
-    logger: true
+  logger: true,
 });
 
-
 export const webServerSetup = () => {
-    server.get("/update", (req, res) => {
-        console.log("Got update")
-    })
+  server.get("/update", (req, res) => {
+    console.log("Got update");
+  });
 
-    server.post("/check", async (req, res) => {
-        const body = req.body as { username: string };
+  server.post("/check", async (req, res) => {
+    const body = req.body as { username: string };
 
-        const guilds = await client.guilds.fetch();
-        let user = null;
+    const guilds = await client.guilds.fetch();
+    let user = null;
 
-        for (const guild of guilds) {
-            const guildId = guild[0];
+    for (const guild of guilds) {
+      const guildId = guild[0];
 
-            const guildUsable = client.guilds.cache.get(guildId);
-            if (!guildUsable) continue;
-            
-            const member = await guildUsable.members.fetch({ query: body.username, limit: 1 });
-    
-            if (!member.size) continue;
+      const guildUsable = client.guilds.cache.get(guildId);
+      if (!guildUsable) continue;
 
-            const mem = member.first()
-            if (!mem || mem.user.username != body.username) continue;
+      const member = await guildUsable.members.fetch({
+        query: body.username,
+        limit: 1,
+      });
 
-            user = mem;
-        }
+      if (!member.size) continue;
 
-        console.log(user);
-        if (!user) return res.code(404).send("User not found");
+      const mem = member.first();
+      if (!mem || mem.user.username != body.username) continue;
 
-        return res.status(200).send(JSON.stringify({
-            userId: user.id,
-            displayAvatarURL: user.displayAvatarURL,
-        }));
-    })
+      user = mem;
+    }
 
-    server.post("/verify", async (req, res) => {
-        const body = req.body as { userId: string; code: string; };
+    console.log(user);
+    if (!user) return res.code(404).send("User not found");
 
-        const guilds = await client.guilds.fetch();
-        let sent = false;
+    return res.status(200).send(
+      JSON.stringify({
+        userId: user.id,
+        displayAvatarURL: user.displayAvatarURL,
+      })
+    );
+  });
 
-        for (const guildEntry of guilds) {
-            const guild = client.guilds.cache.get(guildEntry[0]);
-            if (!guild) continue;
-    
-            const member = await client.users.fetch(body.userId);
-    
-            if (sent) continue;
+  server.post("/verify", async (req, res) => {
+    const body = req.body as { userId: string; code: string };
 
-            try {
-                sent = true;    
-                await member.send(`You're receiving this message because you or someone else is attempting to access your uowbo account.\nIf this was you, please enter the following code in the verification prompt: ${body.code}`)
-    
-                return res.code(200).send({ message: "Verification code sent." });
-    
-            } catch (e) {
-                console.error(e)
-                return res.code(403).send({ message: "Secure" });
-            }
+    const guilds = await client.guilds.fetch();
+    let sent = false;
 
-        }
+    for (const guildEntry of guilds) {
+      const guild = client.guilds.cache.get(guildEntry[0]);
+      if (!guild) continue;
 
+      const member = await client.users.fetch(body.userId);
+
+      if (sent) continue;
+
+      try {
+        sent = true;
+        await member.send(
+          `You're receiving this message because you or someone else is attempting to access your uowbo account.\nIf this was you, please enter the following code in the verification prompt: ${body.code}`
+        );
+
+        return res.code(200).send({ message: "Verification code sent." });
+      } catch (e) {
+        console.error(e);
         return res.code(403).send({ message: "Secure" });
-    });
+      }
+    }
 
-    server.post("/verifyUser", async (req, res) => {
-        const body = req.body as { userId: string; verified: boolean; method: string; guilds: {
-            guildId: string;
-            settings: {
-                allowsBiometricEntry: boolean;
-                allowsEmailEntry: boolean;
-                verifiedRoleId: string;
-            }[]
-        }[]};
+    return res.code(403).send({ message: "Secure" });
+  });
 
-        for (const guildsGiven of body.guilds) {
-            console.log(guildsGiven.settings);
-            const guild = client.guilds.cache.get(guildsGiven.guildId);
-            const member = await guild?.members.fetch(body.userId);
+  server.post("/verifyUser", async (req, res) => {
+    const body = req.body as {
+      userId: string;
+      verified: boolean;
+      method: string;
+      guilds: {
+        guildId: string;
+        settings: {
+          allowsBiometricEntry: boolean;
+          allowsEmailEntry: boolean;
+          verifiedRoleId: string;
+        }[];
+      }[];
+    };
 
-            if (guildsGiven.settings.length == 0) continue;
+    for (const guildsGiven of body.guilds) {
+      console.log(guildsGiven.settings);
+      const guild = client.guilds.cache.get(guildsGiven.guildId);
+      const member = await guild?.members.fetch(body.userId);
 
-            try {
-                if (body.method == "biometricEntry") {
-                    if (guildsGiven.settings[0].allowsBiometricEntry) {
-                        console.log("Adding role")
-                        await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
-                        continue;
-                    }
-                }
-    
-                if (body.method == "emailEntry") {
-                    if (guildsGiven.settings[0].allowsEmailEntry) {
-                        console.log("Adding role")
-                        await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
-                        continue;
-                    }
-                }
-            } catch(e) {
-                continue;
-            }
+      if (guildsGiven.settings.length == 0) continue;
+
+      try {
+        if (body.method == "biometricEntry") {
+          if (guildsGiven.settings[0].allowsBiometricEntry) {
+            console.log("Adding role");
+            await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
+            continue;
+          }
         }
 
-        return res.code(200).send({ message: "User verified." });
-    })
+        if (body.method == "emailEntry") {
+          if (guildsGiven.settings[0].allowsEmailEntry) {
+            console.log("Adding role");
+            await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
+            continue;
+          }
+        }
+      } catch (e) {
+        continue;
+      }
+    }
 
-    server.get("/guild/:guildId/roles", async (req, res) => {
-        const secret = req.headers["x-secret"]
-        
-        if (secret !== process.env.SECRET) return res.code(403).send("Forbidden");
+    return res.code(200).send({ message: "User verified." });
+  });
 
-        const {guildId} = req.params as  {guildId: string};
+  server.get("/guild/:guildId/roles", async (req, res) => {
+    const secret = req.headers["x-secret"];
 
-        const guild = client.guilds.cache.get(guildId);
+    if (secret !== process.env.SECRET) return res.code(403).send("Forbidden");
 
-        if (!guild) return res.code(404).send("Guild not found");
+    const { guildId } = req.params as { guildId: string };
 
-        return res.code(200).send(JSON.stringify(guild.roles.cache.map(r => { return { id: r.id, name: r.name, color: r.hexColor } })));
-    });
-}
+    const guild = client.guilds.cache.get(guildId);
+
+    if (!guild) return res.code(404).send("Guild not found");
+
+    return res.code(200).send(
+      JSON.stringify(
+        guild.roles.cache.map((r) => {
+          return { id: r.id, name: r.name, color: r.hexColor };
+        })
+      )
+    );
+  });
+
+  server.get("/guild/:guildId/roles/:roleId/members", async (req, res) => {
+    const secret = req.headers["x-secret"];
+
+    if (secret !== process.env.SECRET) return res.code(403).send("Forbidden");
+
+    const { guildId, roleId } = req.params as {
+      guildId: string;
+      roleId: string;
+    };
+
+    const guild = client.guilds.cache.get(guildId);
+
+    if (!guild) return res.code(404).send("Guild not found");
+
+    const role = guild.roles.cache.get(roleId);
+
+    if (!role) return res.code(404).send("Role not found");
+
+    return res.code(200).send(
+      JSON.stringify(
+        role.members.map((m) => {
+          return {
+            id: m.id,
+            username: m.user.username,
+            displayAvatarURL: m.user.displayAvatarURL(),
+          };
+        })
+      )
+    );
+  });
+};
