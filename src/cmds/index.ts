@@ -5,25 +5,27 @@ import { REST, Routes } from "discord.js";
 import { Command } from "../const/commands";
 import GetUser from "./getUserInfo";
 import Dashboard from "./dashboard";
-import Setup from "./setup"
+import Setup from "./setup";
+import HelpExternal from "./helpexternal";
 
 // Stable commands being advertised to the Discord API
 export const availableCommands: Command[] = [
-    Verify,
-    Ping,
-    GetUser,
-    Dashboard,
-    Setup
-]
+  Verify,
+  Ping,
+  GetUser,
+  Dashboard,
+  Setup,
+  HelpExternal,
+];
 
 export const registerCommands = async () => {
-    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+  const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
 
-    const stableMeta = availableCommands.map(e => e.meta)
+  const stableMeta = availableCommands.map((e) => e.meta);
 
-    await rest.put(Routes.applicationCommands(process.env.DISCORD_APP_ID), {
-        body: stableMeta
-    });
+  await rest.put(Routes.applicationCommands(process.env.DISCORD_APP_ID), {
+    body: stableMeta,
+  });
 
-    console.log(`Registered ${availableCommands.length} commands.`);
-}
+  console.log(`Registered ${availableCommands.length} commands.`);
+};

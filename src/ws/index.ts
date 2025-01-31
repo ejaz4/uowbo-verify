@@ -87,6 +87,7 @@ export const webServerSetup = () => {
         settings: {
           allowsBiometricEntry: boolean;
           allowsEmailEntry: boolean;
+          allowsExternalEntry: boolean;
           verifiedRoleId: string;
         }[];
       }[];
@@ -110,6 +111,14 @@ export const webServerSetup = () => {
 
         if (body.method == "emailEntry") {
           if (guildsGiven.settings[0].allowsEmailEntry) {
+            console.log("Adding role");
+            await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
+            continue;
+          }
+        }
+
+        if (body.method == "externalEntry") {
+          if (guildsGiven.settings[0].allowsExternalEntry) {
             console.log("Adding role");
             await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
             continue;
