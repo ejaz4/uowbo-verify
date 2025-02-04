@@ -59,6 +59,7 @@ client.on("guildMemberAdd", (member) => {
     isOwner: member.user.id === member.guild.ownerId,
   };
 
+  console.log("New member", mem.username, "added to", member.guild.name);
   fetch(`${process.env.API_HOST}/api/users/register`, {
     method: "POST",
     headers: {

@@ -36,7 +36,6 @@ export const webServerSetup = () => {
       user = mem;
     }
 
-    console.log(user);
     if (!user) return res.code(404).send("User not found");
 
     return res.status(200).send(
@@ -93,6 +92,7 @@ export const webServerSetup = () => {
       }[];
     };
 
+    console.log("Adding role to user", body.userId, body.method);
     for (const guildsGiven of body.guilds) {
       console.log(guildsGiven.settings);
       const guild = client.guilds.cache.get(guildsGiven.guildId);
@@ -103,7 +103,7 @@ export const webServerSetup = () => {
       try {
         if (body.method == "biometricEntry") {
           if (guildsGiven.settings[0].allowsBiometricEntry) {
-            console.log("Adding role");
+            console.log("Adding role via biometric entry");
             await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
             continue;
           }
@@ -111,7 +111,7 @@ export const webServerSetup = () => {
 
         if (body.method == "emailEntry") {
           if (guildsGiven.settings[0].allowsEmailEntry) {
-            console.log("Adding role");
+            console.log("Adding role via email entry");
             await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
             continue;
           }
@@ -119,12 +119,13 @@ export const webServerSetup = () => {
 
         if (body.method == "externalEntry") {
           if (guildsGiven.settings[0].allowsExternalEntry) {
-            console.log("Adding role");
+            console.log("Adding role via external entry");
             await member?.roles.add(guildsGiven.settings[0].verifiedRoleId);
             continue;
           }
         }
       } catch (e) {
+        console.error(e);
         continue;
       }
     }
