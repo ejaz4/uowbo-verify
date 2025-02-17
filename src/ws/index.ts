@@ -63,7 +63,7 @@ export const webServerSetup = () => {
       try {
         sent = true;
         await member.send(
-          `You're receiving this message because you or someone else is attempting to access your uowbo account.\nIf this was you, please enter the following code in the verification prompt: ${body.code}`
+          `You or someone else is trying to access your uowbo! account. If this was you, please enter the following code: ${body.code}\n\nDon't share with anyone, not even anyone on the uowbo! team.`
         );
 
         return res.code(200).send({ message: "Verification code sent." });
@@ -182,5 +182,37 @@ export const webServerSetup = () => {
         })
       )
     );
+  });
+
+  server.post("/guild/:guildId/member/:userId/message", async (req, res) => {
+    const secret = req.headers["x-secret"];
+
+    if (secret !== process.env.SECRET) return res.code(403).send("Forbidden");
+
+    const { guildId, userId } = req.params as {
+      guildId: string;
+      userId: string;
+    };
+
+    const body = req.body as { message: string };
+
+    if (!body.message) return res.code(400).send("Bad request");
+
+    const guild = client.guilds.cache.get(guildId);
+
+    if (!guild) return res.code(404).send("Guild not found");
+
+    const member = await guild.members.fetch(userId);
+
+    if (!member) return res.code(404).send("Member not found");
+
+    try {
+      await member.send(body.message.replace("%GUILDNAME", guild.name));
+
+      return res.code(200).send("Internal server error");
+    } catch (e) {
+      console.error(e);
+      return res.code(500).send("Internal server error");
+    }
   });
 };
