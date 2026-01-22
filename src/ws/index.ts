@@ -1,5 +1,6 @@
 import fastify, { FastifyRequest } from "fastify";
 import { client } from "..";
+import { EmbedBuilder } from "discord.js";
 
 // This is a web server that should only accept requests from the front-end microservice and not any other application.
 export const server = fastify({
@@ -42,7 +43,7 @@ export const webServerSetup = () => {
       JSON.stringify({
         userId: user.id,
         displayAvatarURL: user.displayAvatarURL,
-      })
+      }),
     );
   });
 
@@ -62,14 +63,37 @@ export const webServerSetup = () => {
 
       try {
         sent = true;
-        await member.send(
-          `You or someone else is trying to access your uowbo! account. If this was you, please enter the following code: ${body.code}\n\nDon't share with anyone, not even anyone on the uowbo! team.`
-        );
+
+        const embed = new EmbedBuilder()
+          .setTitle("Verify it's you")
+          .setDescription(
+            "You or someone else is trying to access your uowbo! account.",
+          )
+          .addFields(
+            {
+              name: "Code",
+              value: "```" + body.code + "```",
+              inline: false,
+            },
+            {
+              name: "Remember!",
+              value: "Don't share this code with anybody.",
+              inline: false,
+            },
+          )
+          .setColor("#d9464c")
+          .setFooter({
+            text: "Powered by uowbo! · not affiliated, endorsed or promoted by University of Westminster",
+            iconURL:
+              "https://images-ext-1.discordapp.net/external/4mPJSt8PdqO05qMwNq5NGGH-XLTJC5auWj8jTSg6DkU/%3Fsize%3D2048/https/cdn.discordapp.com/icons/1287692332178735104/96b614aa918e73d62f963b145b9eb15c.png?format=png",
+          });
+
+        await member.send({ embeds: [embed] });
 
         return res.code(200).send({ message: "Verification code sent." });
       } catch (e) {
         console.error(e);
-        return res.code(403).send({ message: "Secure" });
+        return res.code(403).send({ message: "Error" });
       }
     }
 
@@ -148,8 +172,8 @@ export const webServerSetup = () => {
       JSON.stringify(
         guild.roles.cache.map((r) => {
           return { id: r.id, name: r.name, color: r.hexColor };
-        })
-      )
+        }),
+      ),
     );
   });
 
@@ -179,8 +203,8 @@ export const webServerSetup = () => {
             username: m.user.username,
             displayAvatarURL: m.user.displayAvatarURL(),
           };
-        })
-      )
+        }),
+      ),
     );
   });
 
